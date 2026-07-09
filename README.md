@@ -15,9 +15,7 @@ Predicting bank customer churn using machine learning. This is a team project wh
 ├── data/                  # dataset files (raw + train/test split)
 ├── notebooks/             # EDA and analysis notebooks
 ├── src/                   # python scripts for data processing
-│   ├── split_data.py      # creates the canonical train/test split
-│   ├── preprocessing.py   # feature engineering + sklearn pipeline
-│   └── fit_pipeline.py    # fits and saves the preprocessing pipeline
+│   └── split_data.py      # creates the canonical train/test split
 ├── reports/               # presentation slides and findings
 ├── requirements.txt       # project dependencies
 └── Customer_Churn_Roadmap.md  # team roadmap and task breakdown
@@ -52,12 +50,11 @@ We drop these columns before any modeling:
 
 ## Current Progress
 
-- [x] Project structure set up
+- [x] Project structure set up (`/data`, `/notebooks`, `/src`, `/reports`)
 - [x] Canonical train/test split created (80/20, stratified, random_state=42)
 - [x] Leakage columns identified and dropped
-- [x] Preprocessing pipeline built (ColumnTransformer with StandardScaler + OneHotEncoder)
-- [x] Feature engineering functions added
 - [ ] EDA and visualizations (Person B)
+- [ ] Feature engineering and preprocessing pipeline (Person A - Phase 2)
 - [ ] Model training and comparison (Person C)
 
 ## Team
