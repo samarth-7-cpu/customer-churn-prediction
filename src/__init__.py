@@ -1,1 +1,1 @@
-# Customer Churn project source package
+# src/ package — Customer Churn Prediction project
