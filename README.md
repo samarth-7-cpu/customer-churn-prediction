@@ -1,48 +1,67 @@
 # Customer Churn Prediction
 
-This repository is for the Bank Customer Churn prediction project described in `Customer_Churn_Roadmap.md`.
+Predicting bank customer churn using machine learning. This is a team project where we analyze the Bank Customer Churn dataset from Kaggle and build models to identify customers who are likely to leave.
 
-## Project scope
+## Dataset
 
-- Dataset: Bank Customer Churn (Kaggle)
-- Split: 80/20 train/test, `random_state=42`
-- Target metric: F1 score on `y_test`
-- Person A focus: preprocessing, feature engineering, canonical split, train/test artifacts
+- **Source:** Bank Customer Churn Dataset (Kaggle)
+- **Size:** 10,000 customers, 18 features
+- **Target:** `Exited` (1 = churned, 0 = stayed)
+- **Split:** 80/20 train/test with `random_state=42` (stratified)
 
-## Repository structure
+## Project Structure
 
-- `data/` — raw dataset and generated train/test files
-- `notebooks/` — exploratory analysis, model development notebooks
-- `src/` — reusable scripts for splitting data and preparing preprocessing pipelines
-- `reports/` — presentation slides, writeups, findings
-
-## Initial setup (Person A)
-
-1. Place the raw dataset file into `data/`, e.g. `data/raw_bank_churn.csv`.
-2. Run the split script to create canonical train/test artifacts:
-
-```powershell
-python src/split_data.py --input data/raw_bank_churn.csv --output-dir data
+```
+├── data/                  # dataset files (raw + train/test split)
+├── notebooks/             # EDA and analysis notebooks
+├── src/                   # python scripts for data processing
+│   ├── split_data.py      # creates the canonical train/test split
+│   ├── preprocessing.py   # feature engineering + sklearn pipeline
+│   └── fit_pipeline.py    # fits and saves the preprocessing pipeline
+├── reports/               # presentation slides and findings
+├── requirements.txt       # project dependencies
+└── Customer_Churn_Roadmap.md  # team roadmap and task breakdown
 ```
 
-3. Use the saved train/test files for all preprocessing and modeling work.
-4. Do not use `X_test`/`y_test` for EDA or feature engineering.
+## Setup
 
-## GitHub remote
-
-This workspace is initialized as a local git repository. To link your GitHub repo, add the remote after you create it:
-
-```powershell
-git remote add origin <YOUR_GITHUB_REPO_URL>
-git push -u origin main
+1. Clone the repo and install dependencies:
+```bash
+pip install -r requirements.txt
 ```
 
-## Files created
+2. Place the raw dataset as `data/raw-bank-churn.csv` (download from Kaggle).
 
-- `src/split_data.py` — script to generate the canonical split and drop leakage columns
-- `src/preprocessing.py` — pipeline builder for train/test transforms
+3. Run the split script to generate train/test files:
+```bash
+python src/split_data.py --input data/raw-bank-churn.csv --output-dir data
+```
 
-## Notes
+This creates `X_train.csv`, `X_test.csv`, `y_train.csv`, `y_test.csv` in the `data/` folder.
 
-- `RowNumber`, `CustomerId`, `Surname`, and `Complain` are dropped before training to avoid leakage.
-- The final `f1_score` is computed only once on `X_test` / `y_test` after all training and tuning are complete.
+## Columns Dropped (Leakage Prevention)
+
+We drop these columns before any modeling:
+
+| Column | Reason |
+|--------|--------|
+| `RowNumber` | Just a row index, no predictive value |
+| `CustomerId` | Unique identifier, not a feature |
+| `Surname` | Customer name, irrelevant to churn |
+| `Complain` | **Target leakage** — directly correlates with `Exited` |
+
+## Current Progress
+
+- [x] Project structure set up
+- [x] Canonical train/test split created (80/20, stratified, random_state=42)
+- [x] Leakage columns identified and dropped
+- [x] Preprocessing pipeline built (ColumnTransformer with StandardScaler + OneHotEncoder)
+- [x] Feature engineering functions added
+- [ ] EDA and visualizations (Person B)
+- [ ] Model training and comparison (Person C)
+
+## Team
+
+- **Person A (Data & Pipeline Lead):** Samarth — preprocessing, feature engineering, train/test split
+- **Person B (EDA Lead):** TBD — exploratory analysis, visualizations
+- **Person C (Modeling Lead):** TBD — model training, evaluation, final F1 score
