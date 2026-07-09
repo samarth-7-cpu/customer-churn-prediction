@@ -14,12 +14,16 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data files
-data/*.csv
-data/*.pkl
+# IDE
+.vscode/
+.idea/
+
+# Raw dataset 
+data/raw-bank-churn.csv
+
+# Model artifacts
+*.joblib
+*.pkl
 
 # Logs
 *.log
-
-# VS Code
-.vscode/
