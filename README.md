@@ -16,7 +16,10 @@ Predicting bank customer churn using machine learning. This is a team project wh
 ├── notebooks/             # EDA and analysis notebooks
 ├── src/                   # python scripts for data processing
 │   ├── split_data.py      # creates the canonical train/test split
-│   └── eda_churn.py       # Phase 1 EDA — all visualizations & insights
+│   ├── eda_churn.py       # Phase 1 EDA — all visualizations & insights
+│   ├── feature_engineering.py   # Phase 2 — custom sklearn feature transformers
+│   └── preprocessing_pipeline.py # Phase 2 — full Pipeline + ColumnTransformer
+├── models/                # saved pipeline artifacts (.joblib)
 ├── reports/
 │   ├── figures/           # all EDA charts (11 PNGs)
 │   └── eda_insights.md    # key insight takeaways from EDA
@@ -40,6 +43,13 @@ python src/split_data.py --input data/raw-bank-churn.csv --output-dir data
 
 This creates `X_train.csv`, `X_test.csv`, `y_train.csv`, `y_test.csv` in the `data/` folder.
 
+4. Run the preprocessing pipeline to generate processed features:
+```bash
+python src/preprocessing_pipeline.py --verify
+```
+
+This creates `X_train_processed.csv`, `X_test_processed.csv` in `data/` and saves the fitted pipeline to `models/`.
+
 ## Columns Dropped (Leakage Prevention)
 
 We drop these columns before any modeling:
@@ -51,17 +61,29 @@ We drop these columns before any modeling:
 | `Surname` | Customer name, irrelevant to churn |
 | `Complain` | **Target leakage** — directly correlates with `Exited` |
 
+## Engineered Features (Phase 2)
+
+| Feature | Source Columns | Rationale (from EDA) |
+|---------|---------------|---------------------|
+| `AgeBucket` | Age | Age is the #1 churn predictor; binned into 5 ordinal groups |
+| `BalanceToSalaryRatio` | Balance, EstimatedSalary | Captures relative financial position |
+| `IsGermany` | Geography | Germany has ~2x the churn rate of France/Spain |
+| `ZeroBalance` | Balance | Zero vs non-zero balance shows different churn patterns |
+| `InactiveProducts` | IsActiveMember, NumOfProducts | Interaction: inactive + multi-product = high risk |
+| `HighValueAtRisk` | Age, IsActiveMember, Geography, Balance | Composite flag for highest-risk segment |
+
 ## Current Progress
 
 - [x] Project structure set up (`/data`, `/notebooks`, `/src`, `/reports`)
 - [x] Canonical train/test split created (80/20, stratified, random_state=42)
 - [x] Leakage columns identified and dropped
 - [x] EDA and visualizations (Person B) — 11 figures + insights report
-- [ ] Feature engineering and preprocessing pipeline (Person A - Phase 2)
-- [ ] Model training and comparison (Person C)
+- [x] Feature engineering and preprocessing pipeline (Person A - Phase 2)
+- [ ] Model training and comparison (Person C - Phase 3)
 
 ## Team
 
 - **Person A (Data & Pipeline Lead):** Samarth — preprocessing, feature engineering, train/test split
-- **Person B (EDA Lead):** TBD — exploratory analysis, visualizations
+- **Person B (EDA Lead):** Kartik (techykartik07) — exploratory analysis, visualizations
 - **Person C (Modeling Lead):** TBD — model training, evaluation, final F1 score
+
