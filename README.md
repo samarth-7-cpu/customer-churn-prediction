@@ -18,13 +18,15 @@ Predicting bank customer churn using machine learning. This is a team project wh
 │   ├── split_data.py      # creates the canonical train/test split
 │   ├── eda_churn.py       # Phase 1 EDA — all visualizations & insights
 │   ├── feature_engineering.py   # Phase 2 — custom sklearn feature transformers
-│   └── preprocessing_pipeline.py # Phase 2 — full Pipeline + ColumnTransformer
-├── models/                # saved pipeline artifacts (.joblib)
+│   ├── preprocessing_pipeline.py # Phase 2 — full Pipeline + ColumnTransformer
+│   └── model_training.py  # Phase 3 — GridSearchCV model training & evaluation
+├── models/                # saved pipeline + model artifacts (.joblib)
 ├── reports/
 │   ├── figures/           # all EDA charts (11 PNGs)
-│   └── eda_insights.md    # key insight takeaways from EDA
+│   ├── eda_insights.md    # key insight takeaways from EDA
+│   └── model_comparison.csv # Phase 3 model F1 scores
 ├── requirements.txt       # project dependencies
-└── Customer_Churn_Roadmap.md  # team roadmap and task breakdown
+└── README.md
 ```
 
 ## Setup
@@ -50,6 +52,13 @@ python src/preprocessing_pipeline.py --verify
 
 This creates `X_train_processed.csv`, `X_test_processed.csv` in `data/` and saves the fitted pipeline to `models/`.
 
+5. Train and evaluate all models:
+```bash
+python src/model_training.py --verify
+```
+
+This runs GridSearchCV (5-fold, F1-scored) for Logistic Regression, Random Forest, and XGBoost, then saves the best model as `models/final_model.joblib` and the comparison table as `reports/model_comparison.csv`.
+
 ## Columns Dropped (Leakage Prevention)
 
 We drop these columns before any modeling:
@@ -72,18 +81,31 @@ We drop these columns before any modeling:
 | `InactiveProducts` | IsActiveMember, NumOfProducts | Interaction: inactive + multi-product = high risk |
 | `HighValueAtRisk` | Age, IsActiveMember, Geography, Balance | Composite flag for highest-risk segment |
 
+## Model Results (Phase 3)
+
+Three models were tuned via GridSearchCV (5-fold CV, F1-scored) and evaluated on the held-out test set:
+
+| Model | CV F1 (Train) | Test F1 | Best Hyperparameters |
+|-------|:-------------:|:-------:|---------------------|
+| **Random Forest** 🥇 | 0.617 | **0.635** | `max_depth=None, min_samples_leaf=3, n_estimators=200` |
+| **XGBoost** 🥈 | 0.617 | **0.632** | `learning_rate=0.05, max_depth=3, n_estimators=200, scale_pos_weight=3` |
+| **Logistic Regression** 🥉 | 0.491 | **0.504** | `C=0.1, penalty=l2, solver=lbfgs` |
+
+- **Best model:** Random Forest (test F1 = 0.635)
+- Class imbalance handled via `class_weight='balanced'` (LR, RF) and `scale_pos_weight` (XGB)
+- CV and test F1 are closely aligned — no significant overfitting
+
 ## Current Progress
 
 - [x] Project structure set up (`/data`, `/notebooks`, `/src`, `/reports`)
 - [x] Canonical train/test split created (80/20, stratified, random_state=42)
 - [x] Leakage columns identified and dropped
 - [x] EDA and visualizations (Person B) — 11 figures + insights report
-- [x] Feature engineering and preprocessing pipeline (Person A - Phase 2)
-- [ ] Model training and comparison (Person C - Phase 3)
+- [x] Feature engineering and preprocessing pipeline (Person A — Phase 2)
+- [x] Model training, tuning, and comparison (Person C — Phase 3)
 
 ## Team
 
 - **Person A (Data & Pipeline Lead):** Samarth — preprocessing, feature engineering, train/test split
 - **Person B (EDA Lead):** Kartik (techykartik07) — exploratory analysis, visualizations
-- **Person C (Modeling Lead):** TBD — model training, evaluation, final F1 score
-
+- **Person C (Modeling Lead):** Hitesh (hiteshchandra2703-cloud) — model training, evaluation, final F1 score
