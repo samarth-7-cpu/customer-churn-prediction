@@ -1,111 +1,95 @@
 # Customer Churn Prediction
 
-Predicting bank customer churn using machine learning. This is a team project where we analyze the Bank Customer Churn dataset from Kaggle and build models to identify customers who are likely to leave.
+A machine learning project that predicts bank customer churn using the Kaggle Bank Customer Churn Dataset (10,000 customers, 18 features). The project includes comprehensive EDA, a custom feature engineering pipeline, model tuning via GridSearchCV, and a production-ready interactive Streamlit dashboard for real-time churn prediction.
 
-## Dataset
+## Screenshots
 
-- **Source:** Bank Customer Churn Dataset (Kaggle)
-- **Size:** 10,000 customers, 18 features
-- **Target:** `Exited` (1 = churned, 0 = stayed)
-- **Split:** 80/20 train/test with `random_state=42` (stratified)
+### Dashboard Overview & EDA
+![Dashboard Overview](screenshots/01_overview.png)
 
-## Project Structure
+### Interactive EDA Charts
+![EDA Charts](screenshots/02_eda_charts.png)
 
-```
-├── data/                  # dataset files (raw + train/test split)
-├── notebooks/             # EDA and analysis notebooks
-├── src/                   # python scripts for data processing
-│   ├── split_data.py      # creates the canonical train/test split
-│   ├── eda_churn.py       # Phase 1 EDA — all visualizations & insights
-│   ├── feature_engineering.py   # Phase 2 — custom sklearn feature transformers
-│   ├── preprocessing_pipeline.py # Phase 2 — full Pipeline + ColumnTransformer
-│   └── model_training.py  # Phase 3 — GridSearchCV model training & evaluation
-├── models/                # saved pipeline + model artifacts (.joblib)
-├── reports/
-│   ├── figures/           # all EDA charts (11 PNGs)
-│   ├── eda_insights.md    # key insight takeaways from EDA
-│   └── model_comparison.csv # Phase 3 model F1 scores
-├── requirements.txt       # project dependencies
-└── README.md
-```
+### Individual Customer Churn Predictor
+![Churn Predictor](screenshots/03_predictor.png)
 
-## Setup
+### Model Comparison
+![Model Comparison](screenshots/04_model_comparison.png)
 
-1. Clone the repo and install dependencies:
-```bash
-pip install -r requirements.txt
-```
+## Hosted URL
 
-2. Place the raw dataset as `data/raw-bank-churn.csv` (download from Kaggle).
+🔗 **Live Dashboard:** [https://customer-churn-prediction-i.streamlit.app/](https://customer-churn-prediction-i.streamlit.app/)
 
-3. Run the split script to generate train/test files:
-```bash
-python src/split_data.py --input data/raw-bank-churn.csv --output-dir data
-```
+## Features Implemented
 
-This creates `X_train.csv`, `X_test.csv`, `y_train.csv`, `y_test.csv` in the `data/` folder.
+### Frontend
+- Premium dark-themed interactive dashboard built with Streamlit & Plotly
+- Hero banner with gradient design and team credits in sidebar
+- KPI metric cards (Total Customers, Churned, Retained, Churn Rate)
+- Interactive Plotly charts for churn distribution, geographic breakdown, and segment analysis
+- Individual customer churn prediction form with sliders, dropdowns, and real-time probability gauge
+- Batch prediction via CSV upload with downloadable results
+- Model comparison page with performance metrics and visualizations
 
-4. Run the preprocessing pipeline to generate processed features:
-```bash
-python src/preprocessing_pipeline.py --verify
-```
+### Backend
+- Streamlit server with session state management
+- Preprocessing pipeline serialized with joblib for inference
+- Feature engineering applied automatically on user input before prediction
+- Batch processing engine for CSV-based bulk predictions
 
-This creates `X_train_processed.csv`, `X_test_processed.csv` in `data/` and saves the fitted pipeline to `models/`.
+### Machine Learning
+- **Model:** XGBoost Classifier (best), Random Forest, Logistic Regression — all tuned via GridSearchCV (5-fold CV, F1-scored)
+- **Predicts:** Whether a bank customer will churn (leave) or stay, outputting a churn probability percentage
+- **Best Test F1 Score:** 0.637 (XGBoost)
+- **Feature Engineering:** 6 custom features derived from EDA insights — `AgeBucket`, `BalanceToSalaryRatio`, `IsGermany`, `ZeroBalance`, `InactiveProducts`, `HighValueAtRisk`
+- **Pipeline Integration:** A sklearn `Pipeline` with `EDAFeatureEngineer` → `ColumnTransformer` (OneHotEncoder + StandardScaler) preprocesses raw customer data before model inference. The pipeline and trained model are serialized as `.joblib` files and loaded by the dashboard for real-time predictions.
+- **Class Imbalance Handling:** `class_weight='balanced'` (LR, RF) and `scale_pos_weight` (XGBoost)
+- **Evaluation:** F1 score computed using `f1_score(y_test, model.predict(X_test))` with default 0.5 threshold
 
-5. Train and evaluate all models:
-```bash
-python src/model_training.py --verify
-```
+## Technologies/Libraries/Packages Used
 
-This runs GridSearchCV (5-fold, F1-scored) for Logistic Regression, Random Forest, and XGBoost, then saves the best model as `models/final_model.joblib` and the comparison table as `reports/model_comparison.csv`.
+- **Frontend:** Streamlit, Plotly, HTML/CSS (custom dark theme with glassmorphism)
+- **Backend:** Python, Pandas, NumPy, Joblib
+- **Machine Learning:** scikit-learn (Pipeline, ColumnTransformer, GridSearchCV, StandardScaler, OneHotEncoder, LogisticRegression, RandomForestClassifier), XGBoost, Matplotlib, Seaborn
 
-## Columns Dropped (Leakage Prevention)
+## Local Setup
 
-We drop these columns before any modeling:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/samarth-7-cpu/customer-churn-prediction.git
+   cd customer-churn-prediction
+   ```
 
-| Column | Reason |
-|--------|--------|
-| `RowNumber` | Just a row index, no predictive value |
-| `CustomerId` | Unique identifier, not a feature |
-| `Surname` | Customer name, irrelevant to churn |
-| `Complain` | **Target leakage** — directly correlates with `Exited` |
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Engineered Features (Phase 2)
+3. **Download the dataset** from [Kaggle](https://www.kaggle.com/datasets/radheshyamkollipara/bank-customer-churn) and place it as `data/raw-bank-churn.csv`.
 
-| Feature | Source Columns | Rationale (from EDA) |
-|---------|---------------|---------------------|
-| `AgeBucket` | Age | Age is the #1 churn predictor; binned into 5 ordinal groups |
-| `BalanceToSalaryRatio` | Balance, EstimatedSalary | Captures relative financial position |
-| `IsGermany` | Geography | Germany has ~2x the churn rate of France/Spain |
-| `ZeroBalance` | Balance | Zero vs non-zero balance shows different churn patterns |
-| `InactiveProducts` | IsActiveMember, NumOfProducts | Interaction: inactive + multi-product = high risk |
-| `HighValueAtRisk` | Age, IsActiveMember, Geography, Balance | Composite flag for highest-risk segment |
+4. **Run the data split:**
+   ```bash
+   python src/split_data.py --input data/raw-bank-churn.csv --output-dir data
+   ```
 
-## Model Results (Phase 3)
+5. **Run the preprocessing pipeline:**
+   ```bash
+   python src/preprocessing_pipeline.py --verify
+   ```
 
-Three models were tuned via GridSearchCV (5-fold CV, F1-scored) and evaluated on the held-out test set:
+6. **Train models:**
+   ```bash
+   python src/model_training.py --verify
+   ```
 
-| Model | CV F1 (Train) | Test F1 | Best Hyperparameters |
-|-------|:-------------:|:-------:|---------------------|
-| **Random Forest** 🥇 | 0.617 | **0.635** | `max_depth=None, min_samples_leaf=3, n_estimators=200` |
-| **XGBoost** 🥈 | 0.617 | **0.632** | `learning_rate=0.05, max_depth=3, n_estimators=200, scale_pos_weight=3` |
-| **Logistic Regression** 🥉 | 0.491 | **0.504** | `C=0.1, penalty=l2, solver=lbfgs` |
+7. **Launch the dashboard:**
+   ```bash
+   streamlit run dashboard.py
+   ```
+   Open [http://localhost:8501](http://localhost:8501) in your browser.
 
-- **Best model:** Random Forest (test F1 = 0.635)
-- Class imbalance handled via `class_weight='balanced'` (LR, RF) and `scale_pos_weight` (XGB)
-- CV and test F1 are closely aligned — no significant overfitting
+## Team Members
 
-## Current Progress
-
-- [x] Project structure set up (`/data`, `/notebooks`, `/src`, `/reports`)
-- [x] Canonical train/test split created (80/20, stratified, random_state=42)
-- [x] Leakage columns identified and dropped
-- [x] EDA and visualizations (Person B) — 11 figures + insights report
-- [x] Feature engineering and preprocessing pipeline (Person A — Phase 2)
-- [x] Model training, tuning, and comparison (Person C — Phase 3)
-
-## Team
-
-- **Person A (Data & Pipeline Lead):** Samarth — preprocessing, feature engineering, train/test split
-- **Person B (EDA Lead):** Kartik (techykartik07) — exploratory analysis, visualizations
-- **Person C (Modeling Lead):** Hitesh (hiteshchandra2703-cloud) — model training, evaluation, final F1 score
+- **Samarth** — Pipeline Lead (preprocessing, feature engineering, train/test split)
+- **Kartik** (techykartik07) — EDA Lead (exploratory analysis, visualizations)
+- **Hitesh** (hiteshchandra2703-cloud) — Modeling Lead (model training, evaluation, final F1 score)
