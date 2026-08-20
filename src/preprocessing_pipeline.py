@@ -1,30 +1,24 @@
 import argparse
 from pathlib import Path
-
 import joblib
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, FunctionTransformer
-
 from feature_engineering import EDAFeatureEngineer
 
-# paths
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 MODELS = ROOT / "models"
 MODELS.mkdir(parents=True, exist_ok=True)
 
-# column groups after feature engineering
 CAT_COLS = ["Geography", "Gender", "Card Type"]
-
 NUM_COLS = [
     "CreditScore", "Age", "Tenure", "Balance", "EstimatedSalary",
     "Satisfaction Score", "Point Earned", "NumOfProducts",
     "AgeBucket", "BalanceToSalaryRatio", "InactiveProducts",
 ]
-
 BIN_COLS = [
     "HasCrCard", "IsActiveMember",
     "IsGermany", "ZeroBalance", "HighValueAtRisk",
@@ -32,7 +26,6 @@ BIN_COLS = [
 
 
 def build_pipeline():
-    """Build preprocessing pipeline: feature eng -> col transformer."""
     ct = ColumnTransformer(
         transformers=[
             ("cat", OneHotEncoder(drop="first", sparse_output=False, handle_unknown="ignore"), CAT_COLS),
@@ -42,16 +35,13 @@ def build_pipeline():
         remainder="drop",
         verbose_feature_names_out=False,
     )
-
-    pipe = Pipeline([
+    return Pipeline([
         ("feat_eng", EDAFeatureEngineer()),
         ("col_trans", ct),
     ])
-    return pipe
 
 
 def get_feat_names(pipe, X):
-    """Get feature names from fitted pipeline."""
     ct = pipe.named_steps["col_trans"]
     try:
         return list(ct.get_feature_names_out())
@@ -75,7 +65,6 @@ def main():
     print("Phase 2 — Preprocessing Pipeline")
     print("=" * 60 + "\n")
 
-    # load data
     print("Loading data...")
     X_train = pd.read_csv(DATA / "X_train.csv")
     X_test = pd.read_csv(DATA / "X_test.csv")
@@ -83,7 +72,6 @@ def main():
     y_test = pd.read_csv(DATA / "y_test.csv")
     print(f"  train: {X_train.shape}, test: {X_test.shape}")
 
-    # build & fit
     print("\nBuilding pipeline...")
     pipe = build_pipeline()
     for name, _, cols in pipe.named_steps["col_trans"].transformers:
@@ -97,11 +85,9 @@ def main():
     X_te = pipe.transform(X_test)
     print(f"  test processed: {X_te.shape}")
 
-    # feature names
     feat_names = get_feat_names(pipe, X_train)
     print(f"\n  {len(feat_names)} features: {feat_names}")
 
-    # save
     X_tr_df = pd.DataFrame(X_tr, columns=feat_names)
     X_te_df = pd.DataFrame(X_te, columns=feat_names)
 
@@ -115,7 +101,6 @@ def main():
     joblib.dump(pipe, pipe_path)
     print(f"  pipeline -> {pipe_path}")
 
-    # verification
     if args.verify:
         print("\n" + "=" * 60)
         print("VERIFICATION")
@@ -166,7 +151,6 @@ def main():
         else:
             print(f"\n  === {errs} CHECK(S) FAILED ===")
 
-    # summary
     print("\n" + "=" * 60)
     print("TRAINING DATA SUMMARY")
     print("=" * 60)

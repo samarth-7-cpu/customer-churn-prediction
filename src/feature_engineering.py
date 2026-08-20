@@ -4,8 +4,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class EDAFeatureEngineer(BaseEstimator, TransformerMixin):
-    """Creates features based on EDA insights for churn prediction."""
-
     def __init__(self, age_bins=None, drop_originals=False):
         self.age_bins = age_bins or [0, 30, 40, 50, 60, 100]
         self.drop_originals = drop_originals
@@ -16,7 +14,6 @@ class EDAFeatureEngineer(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         df = X.copy() if isinstance(X, pd.DataFrame) else pd.DataFrame(X)
 
-        # age buckets
         if "Age" in df.columns:
             df["AgeBucket"] = pd.cut(
                 df["Age"], bins=self.age_bins,
@@ -24,25 +21,21 @@ class EDAFeatureEngineer(BaseEstimator, TransformerMixin):
                 include_lowest=True
             ).astype(int)
 
-        # balance / salary ratio
         if "Balance" in df.columns and "EstimatedSalary" in df.columns:
             df["BalanceToSalaryRatio"] = (
                 df["Balance"] / df["EstimatedSalary"].clip(lower=1.0)
             ).clip(upper=10.0)
 
-        # germany flag
         if "Geography" in df.columns:
             df["IsGermany"] = (df["Geography"] == "Germany").astype(int)
 
-        # zero balance flag
         if "Balance" in df.columns:
             df["ZeroBalance"] = (df["Balance"] == 0).astype(int)
 
-        # inactive * products interaction
         if "IsActiveMember" in df.columns and "NumOfProducts" in df.columns:
             df["InactiveProducts"] = (1 - df["IsActiveMember"]) * df["NumOfProducts"]
 
-        # high value at risk composite
+        # composite risk flag: old + inactive + (germany or high balance)
         has_age = "Age" in df.columns
         has_act = "IsActiveMember" in df.columns
         has_geo = "Geography" in df.columns
